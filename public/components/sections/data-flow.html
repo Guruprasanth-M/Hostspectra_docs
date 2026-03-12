@@ -20,6 +20,7 @@
 
 <h3>ML Scoring</h3>
 <p>Each feature vector is scored by a 3-method ensemble:</p>
-<p><code>score = 0.5 × isolation_forest + 0.3 × z_score + 0.2 × ema_deviation</code></p>
+<p><code>raw = 0.5 × isolation_forest + 0.3 × z_score + 0.2 × max(isolation_forest, z_score)</code></p>
+<p><code>final_score = 0.7 × raw + 0.3 × ema</code></p>
 <p>Scores above 0.6 trigger alerts. Above 0.8 trigger automated actions.</p>
 </section>
