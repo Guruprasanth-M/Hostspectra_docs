@@ -1,11 +1,19 @@
 <IfModule mod_rewrite.c>
-	RewriteEngine On
-	RewriteBase /
-	
-	# Allow direct access to existing files and directories
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteCond %{REQUEST_FILENAME} !-d
-	
-	# Rewrite all requests to index.html for SPA routing
-	RewriteRule ^(.*)$ index.html [QSA,L]
+    RewriteEngine On
+    RewriteBase /
+
+    # Redirect requests with .php to extensionless URL
+    RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[?\s]
+    RewriteRule ^([^.]+)\.php$ /$1 [R=301,L]
+
+    # Internally serve .php files when extensionless URL is requested
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+)$ $1.php [L]
+
+    # Allow direct access to existing files and directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Rewrite all requests to index.html for SPA routing
+    RewriteRule ^(.*)$ index.html [QSA,L]
 </IfModule>
