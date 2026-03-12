@@ -6,6 +6,8 @@
 	<title>HostSpectra — Self-Hosted SIEM for Linux Servers</title>
 	<meta name="description" content="HostSpectra: Real-time threat detection, ML anomaly scoring, and automated incident response for Linux servers — fully containerized.">
 	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+	<link rel="preload" href="/css/style.css" as="style">
+	<link rel="preload" href="/js/script.js" as="script">
 	<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -23,7 +25,8 @@
 		<div id="support"><?php include __DIR__ . '/components/sections/support.html'; ?></div>
 	</main>
 	<?php include __DIR__ . '/components/footer.html'; ?>
-	<script src="/js/script.js"></script>
+	<button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+	<script src="/js/script.js" defer></script>
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
 			if (typeof initApp === 'function') initApp();
