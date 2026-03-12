@@ -1,0 +1,18 @@
+<section>
+<h2>API Reference</h2>
+<h3>REST Endpoints (9 Total)</h3>
+<table class="api-table"><thead><tr><th>Endpoint</th><th>Method</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/api/health</code></td><td>GET</td><td>System health and service status</td></tr>
+<tr><td><code>/api/metrics</code></td><td>GET</td><td>Current CPU, memory, disk, network metrics</td></tr>
+<tr><td><code>/api/processes</code></td><td>GET</td><td>Running processes with resource usage</td></tr>
+<tr><td><code>/api/ports</code></td><td>GET</td><td>Open ports and listening services</td></tr>
+<tr><td><code>/api/logs</code></td><td>GET</td><td>System logs with filtering</td></tr>
+<tr><td><code>/api/alerts</code></td><td>GET</td><td>Recent security alerts</td></tr>
+<tr><td><code>/api/actions</code></td><td>GET</td><td>Action audit log</td></tr>
+<tr><td><code>/api/action</code></td><td>POST</td><td>Execute manual action (block IP, terminate process)</td></tr>
+<tr><td><code>/ws/live</code></td><td>WebSocket</td><td>Real-time metric streaming</td></tr>
+</tbody></table>
+
+<h3>Authentication</h3>
+<pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+</section>

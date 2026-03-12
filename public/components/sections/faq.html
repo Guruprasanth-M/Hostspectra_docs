@@ -1,0 +1,31 @@
+<section>
+<h2>Frequently Asked Questions</h2>
+<div class="faq-list">
+
+<details class="faq-item">
+<summary>What is HostSpectra?</summary>
+<p>HostSpectra is a self-hosted SIEM (Security Information and Event Management) system that runs as Docker containers on a Linux server. It monitors the host for security threats using machine learning, policy rules, and automated responses — without installing anything on the host itself.</p>
+</details>
+
+<details class="faq-item">
+<summary>Why HostSpectra?</summary>
+<p>Every server — no matter how small — deserves a guardian that never sleeps. HostSpectra is a complex security system made simple: one command, real-time threat detection, automated response. Built for developers like me who tried every option out there and thought — why do I have to study a mountain of documentation, install components I'll never use, and watch my server's resources get eaten alive just to know if someone's knocking on port 22?</p>
+</details>
+
+<details class="faq-item">
+<summary>It's open source — can I customize it for my own use?</summary>
+<p>Yes. HostSpectra is fully open source under MIT license. You can fork it and make it your own — remove the ML engine if you don't need it, strip out the policy engine, add your own collectors, or keep just the parts you want. Every service is a separate container, so you can mix and match.</p>
+</details>
+
+<details class="faq-item">
+<summary>How does HostSpectra compare to Splunk, Wazuh, and other SIEMs?</summary>
+<p><strong>Splunk</strong> — enterprise license, dedicated security team needed, days of setup. <strong>Wazuh</strong> — needs Elasticsearch, 4 GB+ RAM, agents on every host. <strong>HostSpectra</strong> — one command, ~500 MB RAM, zero host agents, runs alongside your site on a $5 server. No vendor lock-in, no bloat, no unused components eating your resources.</p>
+</details>
+
+<details class="faq-item">
+<summary>Does it require any installation on the host?</summary>
+<p>No. HostSpectra uses <strong>zero host agents</strong>. It reads host data through bind-mounted <code>/proc</code> filesystem and <code>/var/log</code> directory from inside Docker containers. The host only needs Docker and Docker Compose installed.</p>
+</details>
+
+</div>
+</section>

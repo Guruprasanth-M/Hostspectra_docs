@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Developer — HostSpectra</title>
+	<meta name="description" content="HostSpectra Developer Documentation: Technology Stack, API Reference, and Build Guide.">
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+	<nav class="navbar">
+		<div class="container">
+			<div class="logo">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
+					<circle cx="32" cy="32" r="30" fill="#161B22" stroke="#58A6FF" stroke-width="2"/>
+					<text x="32" y="43" font-size="32" text-anchor="middle" fill="#58A6FF">🛡</text>
+				</svg>
+				<a href="/" style="color: var(--primary); text-decoration: none;">HostSpectra</a>
+			</div>
+			<div class="nav-links">
+				<a href="/">Home</a>
+				<a href="#technology">Technology</a>
+				<a href="#api">API Reference</a>
+				<a href="#dev-guide">Dev Guide</a>
+			</div>
+			<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+		</div>
+	</nav>
+
+	<header class="hero" style="padding: 50px 20px;">
+		<div class="container">
+			<h1>Developer Documentation</h1>
+			<p>Technology stack, API reference, and step-by-step build guide</p>
+		</div>
+	</header>
+
+	<main class="container">
+		<div id="technology" data-component="technology"></div>
+		<div id="api" data-component="api"></div>
+		<div id="dev-guide" data-component="dev-guide"></div>
+	</main>
+
+	<footer data-component="footer"></footer>
+
+	<script>
+	class ComponentLoader {
+		constructor() { this.components = {}; }
+		async load(name, path) {
+			try {
+				const r = await fetch(path);
+				if (!r.ok) throw new Error('Failed to load ' + name);
+				this.components[name] = await r.text();
+			} catch (e) { console.error('Error loading ' + name, e); }
+		}
+		async loadMultiple(map) {
+			await Promise.all(Object.entries(map).map(([n, p]) => this.load(n, p)));
+		}
+		render(name, sel) {
+			const el = document.querySelector(sel);
+			if (el && this.components[name]) el.innerHTML = this.components[name];
+		}
+		renderMultiple(map) {
+			Object.entries(map).forEach(([n, s]) => this.render(n, s));
+		}
+	}
+
+	const loader = new ComponentLoader();
+	document.addEventListener('DOMContentLoaded', async () => {
+		await loader.loadMultiple({
+			technology: '/components/sections/technology.html',
+			api: '/components/sections/api.html',
+			'dev-guide': '/components/sections/dev-guide.html',
+			footer: '/components/footer.html'
+		});
+		loader.renderMultiple({
+			technology: 'div[data-component="technology"]',
+			api: 'div[data-component="api"]',
+			'dev-guide': 'div[data-component="dev-guide"]',
+			footer: 'footer[data-component="footer"]'
+		});
+
+		// Mobile menu
+		const btn = document.getElementById('mobileMenuBtn');
+		const nav = document.querySelector('.nav-links');
+		if (btn && nav) {
+			btn.addEventListener('click', () => {
+				nav.classList.toggle('open');
+				btn.textContent = nav.classList.contains('open') ? '✕' : '☰';
+			});
+			nav.querySelectorAll('a').forEach(a => {
+				a.addEventListener('click', () => {
+					nav.classList.remove('open');
+					btn.textContent = '☰';
+				});
+			});
+		}
+
+		// Smooth scroll
+		document.querySelectorAll('a[href^="#"]').forEach(a => {
+			a.addEventListener('click', e => {
+				const id = a.getAttribute('href');
+				const target = document.querySelector(id);
+				if (target) {
+					e.preventDefault();
+					window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+				}
+			});
+		});
+	});
+	</script>
+</body>
+</html>

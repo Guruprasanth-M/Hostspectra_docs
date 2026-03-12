@@ -1,0 +1,34 @@
+<section>
+<h2>System Architecture</h2>
+<h3>Data Flow Pipeline</h3>
+<p>HostSpectra processes security data through a seven-stage streaming pipeline via Redis Streams:</p>
+<div class="architecture-flow">
+<div class="flow-box"><h4>1. Collect</h4><p>3 parallel collectors gather logs, network, processes from /proc</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>2. Aggregate</h4><p>Feature builder creates 12-number vectors every 5s</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>3. Score</h4><p>ML ensemble: Isolation Forest + Z-score + EMA</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>4. Evaluate</h4><p>Policy engine checks YAML rules and severity</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>5. Act</h4><p>IP blocking, process termination with guardrails</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>6. Notify</h4><p>HMAC-signed webhooks to Slack/Discord</p></div>
+<span class="arrow">→</span>
+<div class="flow-box"><h4>7. Display</h4><p>Dashboard via WebSocket real-time updates</p></div>
+</div>
+<h3>Container Services (10 Containers)</h3>
+<p>All services run on private Docker network (<code>sentinel-net</code>). Only port 8080 exposed to host.</p>
+<div class="services-grid">
+<div class="service"><h4>📝 Log Collector</h4><p>Tails auth.log, syslog, kern.log — classifies events via regex</p></div>
+<div class="service"><h4>🌐 Network Collector</h4><p>Parses /proc/net/tcp, detects port scans and new connections</p></div>
+<div class="service"><h4>⚙️ Process Collector</h4><p>Snapshots via psutil, flags CPU/memory spikes and suspicious parents</p></div>
+<div class="service"><h4>🧠 ML Engine</h4><p>Isolation Forest anomaly scoring with automatic retraining</p></div>
+<div class="service"><h4>📋 Policy Engine</h4><p>YAML rule evaluation with severity levels and cooldowns</p></div>
+<div class="service"><h4>⚔️ Action Engine</h4><p>Automated IP blocking and process termination with safety checks</p></div>
+<div class="service"><h4>📡 Webhook Service</h4><p>Alert delivery with retry queue and HMAC signing</p></div>
+<div class="service"><h4>🔗 API Server</h4><p>FastAPI REST API + WebSocket streaming</p></div>
+<div class="service"><h4>📊 Dashboard</h4><p>Nginx + Vanilla JavaScript glassmorphism SPA</p></div>
+<div class="service"><h4>💾 Redis</h4><p>Event bus, stream storage, consumer groups, data persistence</p></div>
+</div>
+</section>

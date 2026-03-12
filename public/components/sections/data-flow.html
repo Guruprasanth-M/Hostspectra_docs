@@ -1,0 +1,25 @@
+<section>
+<h2>Data Flow Pipeline</h2>
+<p>How data flows through HostSpectra — from raw host data to automated response in 5–12 seconds.</p>
+
+<div class="architecture-flow">
+<div class="flow-box"><h4>Collect</h4><p>Logs, /proc, processes</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Aggregate</h4><p>12-feature vector / 5s</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Score</h4><p>ML ensemble (0.0–1.0)</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Evaluate</h4><p>Policy rules</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Act</h4><p>Block IP / Kill process</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Notify</h4><p>Webhooks</p></div>
+<div class="arrow">→</div>
+<div class="flow-box"><h4>Display</h4><p>Live dashboard</p></div>
+</div>
+
+<h3>ML Scoring</h3>
+<p>Each feature vector is scored by a 3-method ensemble:</p>
+<p><code>score = 0.5 × isolation_forest + 0.3 × z_score + 0.2 × ema_deviation</code></p>
+<p>Scores above 0.6 trigger alerts. Above 0.8 trigger automated actions.</p>
+</section>

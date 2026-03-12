@@ -1,0 +1,136 @@
+<section>
+<h2>Developer Document</h2>
+<p>A step-by-step guide to how HostSpectra was built — from an empty folder to a working SIEM.</p>
+
+<h3>Tech Stack</h3>
+<ul>
+<li><strong>Language:</strong> Python 3.11</li>
+<li><strong>API Framework:</strong> FastAPI</li>
+<li><strong>Message Bus:</strong> Redis 7.2 (Streams)</li>
+<li><strong>Database:</strong> PostgreSQL 16</li>
+<li><strong>Dashboard:</strong> Nginx + vanilla JavaScript + echarts.js</li>
+<li><strong>ML:</strong> scikit-learn Isolation Forest</li>
+<li><strong>Orchestration:</strong> Docker Compose v3.11</li>
+</ul>
+
+<h3>Step 1 — Folder Structure</h3>
+<p>The project is organized into clear directories. Each service lives in its own folder under <code>services/</code>.</p>
+<pre><code>HostSpectra/
+├── config/              # All YAML + SQL configuration
+│   ├── hostspectra.yml  # Main system config
+│   ├── policies.yml     # Security rules
+│   ├── webhooks.yml     # Notification endpoints
+│   ├── redis.conf       # Redis settings
+│   └── db_init.sql      # PostgreSQL schema
+│
+├── services/            # 8 Python microservices
+│   ├── collectors/      # Log, network, process collection
+│   ├── ml/              # Anomaly scoring engine
+│   ├── policy/          # Rule evaluation
+│   ├── actions/         # Firewall & process control
+│   ├── webhooks/        # Alert delivery
+│   ├── api/             # FastAPI REST + WebSocket
+│   ├── dashboard/       # Nginx SPA frontend
+│   └── autoheal/        # Container watchdog
+│
+├── scripts/             # Utility scripts
+│   ├── backup.sh
+│   ├── restore.sh
+│   ├── reset.sh
+│   └── simulate_attack.sh
+│
+├── data/                # Persistent volumes
+│   ├── redis/           # RDB + AOF files
+│   ├── db/              # PostgreSQL data
+│   ├── models/          # Pre-trained ML model
+│   └── audit/           # Action logs
+│
+├── tests/               # Unit, integration, E2E
+├── main.sh              # 1060-line installer
+└── docker-compose.yml   # 10-container orchestration</code></pre>
+
+<h3>Step 2 — Docker Compose Setup</h3>
+<p>The <code>docker-compose.yml</code> defines all 10 containers on a single bridge network called <code>hostspectra-net</code>. Only port <strong>8080</strong> is exposed to the host.</p>
+
+<div class="services-grid">
+<div class="service"><h4>Redis</h4><p>Event bus via Streams + data store</p></div>
+<div class="service"><h4>PostgreSQL</h4><p>Alert persistence and history</p></div>
+<div class="service"><h4>Collectors</h4><p>Reads /proc, /var/log, processes</p></div>
+<div class="service"><h4>ML Engine</h4><p>Scores features with Isolation Forest</p></div>
+<div class="service"><h4>Policy Engine</h4><p>Evaluates rules, generates alerts</p></div>
+<div class="service"><h4>Actions</h4><p>Blocks IPs, kills processes</p></div>
+<div class="service"><h4>Webhooks</h4><p>Sends alerts to Slack/Discord</p></div>
+<div class="service"><h4>API</h4><p>FastAPI REST + WebSocket gateway</p></div>
+<div class="service"><h4>Dashboard</h4><p>Nginx SPA with real-time charts</p></div>
+<div class="service"><h4>Autoheal</h4><p>Watchdog that restarts crashed services</p></div>
+</div>
+
+<h3>Step 3 — Building The Collectors</h3>
+<p>The collectors are the foundation. Three parallel collectors run inside a single container:</p>
+<ul>
+<li><strong>Log Collector</strong> — Tails <code>/var/log/auth.log</code>, <code>/var/log/syslog</code>, parses SSH failures, sudo attempts, service restarts. Publishes to <code>sentinel:logs</code> Redis stream.</li>
+<li><strong>Network Collector</strong> — Reads <code>/proc/net/tcp</code> every 5 seconds, diffs snapshots, detects new connections and port scans (>5 ports from same IP in 30s). Publishes to <code>sentinel:network</code>.</li>
+<li><strong>Process Collector</strong> — Uses <code>psutil</code> to poll running processes, flags high CPU (>80%), high memory (>500MB), suspicious parent-child relationships (e.g., nginx spawning bash). Publishes to <code>sentinel:processes</code>.</li>
+</ul>
+<p>A <strong>Feature Builder</strong> aggregates all three streams every 5 seconds into a 12-dimensional feature vector and publishes to <code>sentinel:features</code>.</p>
+
+<h3>Step 4 — ML Scoring Engine</h3>
+<p>The ML service reads feature vectors and calculates risk scores using a hybrid ensemble:</p>
+<pre><code>final_score = 0.5 × isolation_forest + 0.3 × z_score + 0.2 × ema_deviation</code></pre>
+<ul>
+<li><strong>Isolation Forest</strong> — Pre-trained on baseline behavior. Points needing fewer partitions to isolate = more anomalous.</li>
+<li><strong>Z-score</strong> — Statistical deviation from running mean. Catches sudden spikes.</li>
+<li><strong>EMA deviation</strong> — Exponential moving average tracks gradual drift over time.</li>
+</ul>
+<p>Scores (0.0–1.0) are published to <code>sentinel:scores</code>.</p>
+
+<h3>Step 5 — Policy Engine & Alerts</h3>
+<p>The policy engine reads scores and evaluates them against rules defined in <code>policies.yml</code>:</p>
+<pre><code># Example policy rule
+- name: high_anomaly_score
+  condition: score > 0.6
+  severity: high
+  actions: [alert, block_ip]
+  cooldown: 300</code></pre>
+<p>It deduplicates alerts (same type within 60s = single alert), persists to PostgreSQL, and publishes action requests for severe threats.</p>
+
+<h3>Step 6 — Actions Engine</h3>
+<p>The actions engine executes automated responses on the host:</p>
+<ul>
+<li><strong>IP Blocking</strong> — Adds <code>iptables</code> DROP rules via <code>nsenter</code> to access the host network namespace. Auto-reverses after configurable timeout (default 60 min).</li>
+<li><strong>Process Kill</strong> — Terminates suspicious processes detected by collectors.</li>
+<li><strong>Safety guardrails</strong> — Protected IPs (127.0.0.1, ::1), protected ports (22, 51820), max 5 actions per minute.</li>
+</ul>
+
+<h3>Step 7 — Webhooks & Notifications</h3>
+<p>Reads alerts and delivers them to configured endpoints:</p>
+<ul>
+<li>Formats payloads for Slack, Discord, or generic HTTP POST</li>
+<li>Signs all payloads with HMAC-SHA256 for verification</li>
+<li>Retries with exponential backoff on failure</li>
+<li>Dead-letters permanently failed messages</li>
+</ul>
+
+<h3>Step 8 — API & Dashboard</h3>
+<p>The <strong>API</strong> (FastAPI) exposes REST endpoints (<code>/health</code>, <code>/metrics</code>, <code>/status</code>, <code>/alerts</code>) and a WebSocket at <code>/ws/live</code> that streams events every 2 seconds to the dashboard.</p>
+<p>The <strong>Dashboard</strong> is a pure frontend SPA served by Nginx. It proxies <code>/api/*</code> requests to FastAPI. Charts are rendered with echarts.js. No server-side rendering — everything runs in the browser.</p>
+
+<h3>Step 9 — The Installer (main.sh)</h3>
+<p>A single 1060-line bash script handles everything:</p>
+<pre><code>./main.sh start    # Install dependencies, build images, launch all 10 containers
+./main.sh stop     # Graceful shutdown
+./main.sh restart  # Restart with health check
+./main.sh destroy  # Remove everything
+./main.sh status   # Health report
+./main.sh logs ml  # Tail specific service logs</code></pre>
+<p>It auto-detects the OS package manager (apt, yum, dnf, pacman, apk), installs Docker if missing, generates random secrets for the <code>.env</code> file, builds all 8 custom images, and starts the stack.</p>
+
+<h3>Step 10 — Testing</h3>
+<p>115 tests across three levels:</p>
+<ul>
+<li><strong>Unit tests</strong> — Individual functions, scoring logic, feature extraction</li>
+<li><strong>Integration tests</strong> — Redis stream flow, API endpoints, database queries</li>
+<li><strong>E2E tests</strong> — Full pipeline from simulated attack to alert delivery</li>
+</ul>
+<p>Run with: <code>docker compose -f docker-compose.test.yml up --abort-on-container-exit</code></p>
+</section>

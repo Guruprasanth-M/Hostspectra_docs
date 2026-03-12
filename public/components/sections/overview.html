@@ -1,0 +1,21 @@
+<section>
+<h2>Overview</h2>
+
+<h3>Why HostSpectra Exists</h3>
+<p>I run a simple Linux server — just hosting my site, nothing enterprise. I wanted to know if someone was brute-forcing my SSH, if something weird was running, if an IP was scanning my ports. Basic stuff. Should be simple.</p>
+<p>First I tried Splunk — built for companies with dedicated security teams. The setup alone requires reading documentation for days. Then I tried Wazuh — same story. A separate indexer, a separate manager, agents to install, Elasticsearch underneath, 4 GB RAM minimum just to start.</p>
+<p>Every tool I found was an enterprise product built for enterprise teams. Heavy. Complex. My server runs my actual site — I can't dedicate all of that just to watch it.</p>
+<p>But Docker is already on my server. Redis runs in Docker. My app runs in Docker. Why can't security monitoring just be another <code>docker compose up</code>?</p>
+<p>So I built it. Everything I needed — logs, processes, network connections, ML anomaly scoring, auto IP blocking, real-time dashboard — all in containers, one command, on the same cheap server that runs my site without it even noticing.</p>
+<p><strong>HostSpectra</strong> — because every server deserves a guard that never sleeps.</p>
+
+<h3>What It Does</h3>
+<div class="overview-grid">
+<div class="overview-card"><h3>🔍 Real-Time Monitoring</h3><p>Collects CPU, memory, disk, network, processes and ports from host every 5 seconds via /proc and psutil</p></div>
+<div class="overview-card"><h3>🤖 ML Anomaly Detection</h3><p>3-method ensemble scoring: Isolation Forest + Z-score + EMA deviation for intelligent threat detection</p></div>
+<div class="overview-card"><h3>📋 Policy Engine</h3><p>YAML-based alert rules with severity levels (critical, high, medium, low) and configurable cooldown periods</p></div>
+<div class="overview-card"><h3>⚡ Automated Response</h3><p>IP blocking via iptables, process termination with safety guardrails, and webhook notifications to Slack/Discord</p></div>
+<div class="overview-card"><h3>📊 Live Dashboard</h3><p>Glassmorphism UI with WebSocket-powered real-time updates, metrics visualization and alert management</p></div>
+<div class="overview-card"><h3>🐳 Zero Host Agents</h3><p>Everything runs in Docker; reads host data via bind-mounted /proc filesystem — no host installation required</p></div>
+</div>
+</section>
